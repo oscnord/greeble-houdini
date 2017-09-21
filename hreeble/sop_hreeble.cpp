@@ -336,9 +336,8 @@ OP_ERROR SOP_Hreeble::cookMySop(OP_Context & ctx)
 	phandle = gdp->getP();
 	prim_refmap.bind(*gdp, *gdp);
 	if (inherit_attribs != 0) {
-		auto prim_attrs = gdp->primitiveAttribs();
-		for (const auto &each : prim_attrs) {
-			prim_refmap.appendDest(each);
+		for (GA_AttributeDict::iterator it = gdp->primitiveAttribs().begin(); !it.atEnd(); ++it) {
+			prim_refmap.appendDest(it.attrib());
 		}
 	}
 	if (DoConvexPRM() == 1)

@@ -157,9 +157,9 @@ void Element::transform(const UT_Vector2R & new_pos, const fpreal & scale, const
 
 
 
-void Element::build(GU_Detail *gdp, const GEO_Primitive *prim, const UT_Vector3 &primN, const fpreal & height)
+void Element::build(GU_Detail *gdp, const GEO_Primitive *prim, const UT_Vector3F &primN, const fpreal & height)
 {
-	GA_RWHandleV3 ph = gdp->getP();
+	GA_RWHandleV3 ph(gdp->getP());
 	GA_AttributeRefMap vertex_refmap(*gdp);
 	GA_RWHandleV3D vh;
 	UT_Vector3R island_center;
@@ -188,7 +188,7 @@ void Element::build(GU_Detail *gdp, const GEO_Primitive *prim, const UT_Vector3 
 			bool last(i == (num_coords - 1));
 			const UT_Vector2R &coord0 = subelem.coords(i);
 			const UT_Vector2R &coord1 = subelem.coords((last ? 0 : i + 1));
-			UT_Vector4 pt0, pt1, pt2, pt3;
+			UT_Vector4F pt0, pt1, pt2, pt3;
 			GA_Offset ptof0 = point_block + i*2;
 			GA_Offset ptof1 = point_block + i*2 + 1;
 			GA_Offset ptof2 = point_block + (last ? 0 : i*2 + 2);
@@ -196,11 +196,11 @@ void Element::build(GU_Detail *gdp, const GEO_Primitive *prim, const UT_Vector3 
 			top_ptoffs.append(ptof1);
 			prim->evaluateInteriorPoint(pt0, coord0.x(), coord0.y());
 			prim->evaluateInteriorPoint(pt1, coord1.x(), coord1.y());
-			ph.set(ptof0, pt0);
-			ph.set(ptof2, pt1);
+			ph.set(ptof0, UT_Vector3F(pt0));
+			ph.set(ptof2, UT_Vector3F(pt1));
 			
-			ph.set(ptof1, pt0 + primN * height);
-			ph.set(ptof3, pt1 + primN * height);
+			ph.set(ptof1, UT_Vector3F(pt0) + primN * height);
+			ph.set(ptof3, UT_Vector3F(pt1) + primN * height);
 			
 			auto new_prim = GEO_PrimPoly::build(gdp, 4, false, false);
 			result_prims.append(new_prim);
@@ -231,6 +231,8 @@ void Element::build(GU_Detail *gdp, const GEO_Primitive *prim, const UT_Vector3 
 				vh.add(new_prim->getVertexOffset(1), offset_dir * offset_val);
 
 			}
+			if (elem_group != nullptr)
+				elem_group->add(new_prim);
 			
 		}
 		auto top_prim = GEO_PrimPoly::build(gdp, num_coords, false, false);
@@ -246,6 +248,8 @@ void Element::build(GU_Detail *gdp, const GEO_Primitive *prim, const UT_Vector3 
 				prim_refmap.copyValue(GA_ATTRIB_PRIMITIVE, each->getMapOffset(), GA_ATTRIB_PRIMITIVE, prim->getMapOffset());
 			}
 		}
+		if (elem_front_group != nullptr)
+			elem_front_group->add(top_prim);
 	}
 }
 
